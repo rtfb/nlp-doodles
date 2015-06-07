@@ -18,25 +18,27 @@ var (
 	STRULES = set.New("STR", "ST", "SR", "TR")
 )
 
-// XXX: convert to chans instead of accumulating array?
-func splitSounds(word string) []string {
-	var result []string
-	last := ""
-	for _, char := range word {
-		if (char == 'z' || char == 'ž') && last == "d" {
-			result = append(result, last+string(char))
-			last = ""
-			continue
+func splitSounds(word string) <-chan string {
+	out := make(chan string)
+	go func() {
+		defer close(out)
+		last := ""
+		for _, char := range word {
+			if (char == 'z' || char == 'ž') && last == "d" {
+				out <- last + string(char)
+				last = ""
+				continue
+			}
+			if last != "" {
+				out <- last
+			}
+			last = string(char)
 		}
 		if last != "" {
-			result = append(result, last)
+			out <- last
 		}
-		last = string(char)
-	}
-	if last != "" {
-		result = append(result, last)
-	}
-	return result
+	}()
+	return out
 }
 
 func SoundToSTR(sound string) string {
@@ -62,7 +64,7 @@ func syllabificate(word string) []string {
 	syllable := ""
 	STR := ""
 	wasVowel := false
-	for _, sound := range splitSounds(word) {
+	for sound := range splitSounds(word) {
 		if isVowel(sound) && wasVowel {
 			syllable += sound
 		} else if isVowel(sound) {

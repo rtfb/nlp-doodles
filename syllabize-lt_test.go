@@ -22,6 +22,25 @@ func LoopTests(t *testing.T, tests []StrToStrListTest,
 	}
 }
 
+func ToSlice(c <-chan string) []string {
+	s := make([]string, 0)
+	for i := range c {
+		s = append(s, i)
+	}
+	return s
+}
+
+func LoopChanTests(t *testing.T, tests []StrToStrListTest,
+	testedFunc func(w string) <-chan string, name string) {
+	for _, test := range tests {
+		actual := strings.Join(ToSlice(testedFunc(test.word)), "-")
+		if !reflect.DeepEqual(actual, test.exp) {
+			t.Errorf("%s(%q) = %q, but expected %q\n", name, test.word, actual,
+				test.exp)
+		}
+	}
+}
+
 func TestSplitSounds(t *testing.T) {
 	var tests = []StrToStrListTest{
 		{"labas", "l-a-b-a-s"},
@@ -32,7 +51,7 @@ func TestSplitSounds(t *testing.T) {
 		{"džipas", "dž-i-p-a-s"},
 		{"dzūkas", "dz-ū-k-a-s"},
 	}
-	LoopTests(t, tests, splitSounds, "splitSounds")
+	LoopChanTests(t, tests, splitSounds, "splitSounds")
 }
 
 func TestSyllabificate(t *testing.T) {
