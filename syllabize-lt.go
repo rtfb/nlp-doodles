@@ -56,16 +56,6 @@ func isVowel(sound string) bool {
 	return strings.Contains(vowels, sound)
 }
 
-func filter(s []string, fn func(string) bool) []string {
-	var p []string // == nil
-	for _, v := range s {
-		if fn(v) {
-			p = append(p, v)
-		}
-	}
-	return p
-}
-
 func syllabificate(word string) []string {
 	var syllables []string
 	var consonants []string
@@ -80,7 +70,9 @@ func syllabificate(word string) []string {
 				(len(consonants) == 1) ||
 				STRULES.Has(STR)
 			if carryConsonants {
-				syllables = append(syllables, syllable)
+				if syllable != "" {
+					syllables = append(syllables, syllable)
+				}
 				syllable = strings.Join(consonants, "")
 			} else if len(STR) > 2 && STRULES.Has(STR[len(STR)-2:]) {
 				syllable += strings.Join(consonants[:len(consonants)-2], "")
@@ -92,7 +84,9 @@ func syllabificate(word string) []string {
 				syllable = strings.Join(consonants[len(consonants)-1:], "")
 			} else {
 				syllable = strings.Join(consonants, "")
-				syllables = append(syllables, syllable)
+				if syllable != "" {
+					syllables = append(syllables, syllable)
+				}
 				syllable = ""
 			}
 			STR = ""
@@ -114,13 +108,7 @@ func syllabificate(word string) []string {
 	} else if len(consonants) > 0 && len(syllables) > 0 {
 		syllables[len(syllables)-1] += strings.Join(consonants, "")
 	}
-	// TODO: try to avoid this filtering, make it return syllables
-	return filter(syllables, func(s string) bool {
-		if s == "" {
-			return false
-		}
-		return true
-	})
+	return syllables
 }
 
 func main() {
