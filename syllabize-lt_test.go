@@ -16,7 +16,7 @@ func LoopTests(t *testing.T, tests []StrToStrListTest,
 	for _, test := range tests {
 		actual := strings.Join(testedFunc(test.word), "-")
 		if !reflect.DeepEqual(actual, test.exp) {
-			t.Errorf("%s(%q) = %v, but expected %v\n", name, test.word, actual,
+			t.Errorf("%s(%q) = %q, but expected %q\n", name, test.word, actual,
 				test.exp)
 		}
 	}
