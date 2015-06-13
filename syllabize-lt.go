@@ -1,11 +1,18 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
+	"os"
 	"strings"
 
 	"gopkg.in/fatih/set.v0"
 )
+
+type templateEntry struct {
+	template string
+	tags []string
+}
 
 const (
 	vowels = "aąeęėiįyouųū"
@@ -17,6 +24,36 @@ var (
 	R       = set.New("l", "m", "n", "r", "v", "j")
 	STRULES = set.New("STR", "ST", "SR", "TR")
 )
+
+func scanTemplate(text string) templateEntry {
+	var result templateEntry
+	parts := strings.Split(text, " ")
+	if len(parts) < 1 {
+		panic("can't parse template: " + text)
+	}
+	result.template = parts[0]
+	for _, t := range parts[1:] {
+		result.tags = append(result.tags, strings.Trim(t, "<>"))
+	}
+	return result
+}
+
+func loadTemplates(dict string) []templateEntry {
+	file, err := os.Open(dict)
+	if err != nil {
+		panic("can't load templates dict")
+	}
+	defer file.Close()
+	var result []templateEntry
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		result = append(result, scanTemplate(scanner.Text()))
+	}
+	if scanner.Err() != nil {
+		panic(scanner.Err())
+	}
+	return result
+}
 
 func splitSounds(word string) <-chan string {
 	out := make(chan string)
@@ -119,4 +156,6 @@ func main() {
 	for _, w := range l {
 		fmt.Printf("%s: %#v\n", w, syllabificate(w))
 	}
+	tmpl := loadTemplates("templates.dict")
+	fmt.Printf("%+v\n", tmpl)
 }
