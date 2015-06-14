@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"regexp"
 	"strings"
 
 	"gopkg.in/fatih/set.v0"
@@ -11,7 +12,7 @@ import (
 
 type templateEntry struct {
 	template string
-	tags []string
+	tags     []string
 }
 
 const (
@@ -24,6 +25,21 @@ var (
 	R       = set.New("l", "m", "n", "r", "v", "j")
 	STRULES = set.New("STR", "ST", "SR", "TR")
 )
+
+func templateToRegexp(tmpl string) *regexp.Regexp {
+	reStr := strings.Replace(tmpl, "-", "", -1)
+	if reStr[0] == '*' {
+		reStr = strings.Replace(reStr, "*", ".*", 1)
+	}
+	if strings.HasSuffix(reStr, "#") {
+		reStr = strings.Replace(reStr, "#", ".*", 1)
+	}
+	if strings.HasSuffix(reStr, "*") {
+		tmp := strings.TrimRight(reStr, "*")
+		reStr = tmp + ".+"
+	}
+	return regexp.MustCompile(reStr)
+}
 
 func scanTemplate(text string) templateEntry {
 	var result templateEntry

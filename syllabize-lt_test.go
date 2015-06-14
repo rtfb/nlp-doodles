@@ -160,6 +160,28 @@ func TestSyllabificate(t *testing.T) {
 
 		// afrikatomis nelaikomos tokio tipo samplaikos:
 		// ?? {"juodžemis", "juod-že-mis"},
+
+		// These two will be handled when templates are implemented:
+		//{"antibiotikai", "an-ti-bi-o-ti-kai"},
+		//{"biotoksinai", "bi-o-tok-si-nai"},
+		{"gnaibioti", "gnai-bio-ti"},
+		{"negnaibioti", "ne-gnai-bio-ti"},
 	}
 	LoopTests(t, tests, syllabificate, "syllabificate")
+}
+
+func matchRe(t *testing.T, expected bool, tmpl, word string) {
+	if templateToRegexp(tmpl).MatchString(word) != expected {
+		t.Fatalf("templateToRegexp(%q).MatchString(%q) = %v, but expected %v\n",
+			tmpl, word, !expected, expected)
+	}
+}
+
+func TestTemplateMatching(t *testing.T) {
+	matchRe(t, true, "*bi-ot*", "antibiotikai")
+	matchRe(t, false, "*gnaibiot*", "antibiotikai")
+	matchRe(t, true, "*gnaibiot*", "gnaibioti")
+	matchRe(t, true, "*bi-ot*", "gnaibioti")
+	matchRe(t, true, "*bi-ot*", "biotoksinai")
+	matchRe(t, false, "*gnaibiot*", "biotoksinai")
 }
